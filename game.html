@@ -2,7 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Jungle Journey" />
+  <meta name="theme-color" content="#1a2e1a" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <title>Jungle Journey</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -62,7 +69,7 @@
 
     /* ─── Game Screen ─── */
     #game-screen {
-      --tile: min(calc((100vw - 356px) / 10), calc((100vh - 80px) / 10));
+      --tile: min(calc((100vw - 2 * clamp(100px, 12vw, 150px) - 36px) / 10), calc((100vh - 80px) / 10));
       display: none;
       flex-direction: column;
       align-items: center;
@@ -87,13 +94,13 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      width: 150px;
+      width: clamp(100px, 12vw, 150px);
       flex-shrink: 0;
     }
 
     /* ─── Player Corner ─── */
     .player-corner {
-      width: 150px;
+      width: clamp(100px, 12vw, 150px);
       min-height: 160px;
       border-radius: 12px;
       border: 2px solid rgba(255,255,255,0.1);
@@ -742,6 +749,11 @@ function showWin(name) {
   document.getElementById('win-overlay').classList.add('show');
 }
 
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/jungle-journey/sw.js');
+  }
 </script>
 </body>
 </html>

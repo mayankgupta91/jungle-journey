@@ -1,0 +1,15 @@
+{
+  "name": "Jungle Journey",
+  "short_name": "Jungle Journey",
+  "description": "A wild safari board game for 2–4 players",
+  "start_url": "/jungle-journey/game.html",
+  "scope": "/jungle-journey/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1a2e1a",
+  "theme_color": "#1a2e1a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
