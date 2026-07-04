@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jungle Journey</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #1a2e1a;
+      color: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ─── Setup Screen ─── */
+    #setup-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 460px;
+    }
+
+    #setup-screen h1 { font-size: 2.8rem; color: #f5e642; text-shadow: 2px 2px 8px #000; }
+    #setup-screen h2 { color: #a8e88a; font-size: 1rem; font-weight: normal; margin-top: -12px; }
+
+    .setup-box {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 24px 28px;
+      width: 100%;
+    }
+
+    .setup-box label { display: block; margin-bottom: 5px; color: #a8e88a; font-size: 0.85rem; }
+
+    .setup-box select,
+    .setup-box input[type="text"] {
+      width: 100%; padding: 9px 12px;
+      border-radius: 7px; border: 1px solid #3a5a3a;
+      background: #0d2b1a; color: #f0f0f0;
+      font-size: 0.95rem; margin-bottom: 14px;
+    }
+
+    .player-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+    .player-row input { flex: 1; margin-bottom: 0; }
+    .color-swatch { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; flex-shrink: 0; }
+
+    .btn {
+      padding: 11px 26px; border: none; border-radius: 8px;
+      font-size: 0.95rem; font-weight: bold; cursor: pointer;
+    }
+    .btn-primary { background: #f5e642; color: #1a2e1a; }
+    .btn-danger  { background: #7a1a1a; color: #fff; font-size: 0.75rem; padding: 6px 12px; }
+
+    /* ─── Game Screen ─── */
+    #game-screen {
+      --tile: min(calc((100vw - 356px) / 10), calc((100vh - 80px) / 10));
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      width: 100%;
+    }
+
+    .game-header {
+      display: flex; align-items: center; gap: 16px;
+    }
+    .game-header h1 { font-size: 1.5rem; color: #f5e642; }
+
+    /* ─── Main Layout ─── */
+    .game-wrap {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .corners-col {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 150px;
+      flex-shrink: 0;
+    }
+
+    /* ─── Player Corner ─── */
+    .player-corner {
+      width: 150px;
+      min-height: 160px;
+      border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.1);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: border-color 0.3s, box-shadow 0.3s, opacity 0.3s;
+      opacity: 0.45;
+      background: rgba(0,0,0,0.25);
+    }
+
+    .player-corner.active {
+      opacity: 1;
+      box-shadow: 0 0 16px -2px var(--player-color);
+    }
+
+    .player-corner.hidden { visibility: hidden; }
+
+    .corner-name {
+      font-size: 1rem; font-weight: bold;
+      color: var(--player-color);
+    }
+
+    .corner-meta {
+      font-size: 0.72rem; color: #aaa;
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+
+    .corner-sp {
+      font-size: 0.72rem;
+      color: #f5e642;
+      min-height: 16px;
+    }
+
+    .corner-miss {
+      font-size: 0.72rem; color: #ff8888;
+    }
+
+    /* ─── Corner Main Area ─── */
+    .corner-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 100px;
+    }
+
+    /* Dice */
+    .dice-btn {
+      width: 58px; height: 58px;
+      background: #fff; border-radius: 12px;
+      border: none; cursor: pointer;
+      font-size: 2rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.1s;
+      color: #1a2e1a;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+    }
+    .dice-btn:hover { transform: scale(1.08); }
+    .dice-btn:active { transform: scale(0.95); }
+    .dice-btn.rolling { animation: diceRoll 0.55s ease; }
+
+    @keyframes diceRoll {
+      0%   { transform: rotate(0deg) scale(1); }
+      20%  { transform: rotate(-15deg) scale(1.1); }
+      50%  { transform: rotate(12deg) scale(0.92); }
+      75%  { transform: rotate(-6deg) scale(1.05); }
+      100% { transform: rotate(0deg) scale(1); }
+    }
+
+    .roll-result {
+      font-size: 2.8rem;
+      font-weight: bold;
+      color: var(--player-color);
+      line-height: 1;
+    }
+
+    .roll-label {
+      font-size: 0.72rem;
+      color: #ccc;
+      text-align: center;
+    }
+
+    .event-big {
+      font-size: 1.7rem;
+      line-height: 1;
+    }
+
+    .event-msg {
+      font-size: 0.75rem;
+      color: #f0f0f0;
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    .last-event {
+      font-size: 0.7rem;
+      color: #888;
+      text-align: center;
+      line-height: 1.3;
+      padding: 4px 0;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      margin-top: 4px;
+    }
+
+    /* Swap / Trap buttons */
+    .action-btns { display: flex; flex-direction: column; gap: 5px; width: 100%; }
+    .action-btn {
+      padding: 6px 8px; border: none; border-radius: 6px;
+      font-size: 0.75rem; font-weight: bold; cursor: pointer;
+      background: rgba(255,255,255,0.12); color: #fff;
+      text-align: left;
+    }
+    .action-btn:hover { background: rgba(255,255,255,0.22); }
+    .swap-btn { background: rgba(162,89,255,0.25); border: 1px solid rgba(162,89,255,0.5); font-size: 0.8rem; padding: 8px 10px; }
+    .swap-btn:hover { background: rgba(162,89,255,0.45); }
+
+    /* ─── Board ─── */
+    #board {
+      display: grid;
+      grid-template-columns: repeat(10, var(--tile));
+      grid-template-rows: repeat(10, var(--tile));
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .tile {
+      border-radius: 6px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: bold;
+      color: #fff; position: relative;
+      border: 1px solid rgba(0,0,0,0.25);
+      cursor: default;
+      transition: box-shadow 0.2s;
+      overflow: hidden;
+    }
+
+    .tile .t-num {
+      position: absolute; top: 2px; left: 3px;
+      font-size: calc(var(--tile) * 0.16); opacity: 0.7;
+    }
+    .tile .t-icon { font-size: calc(var(--tile) * 0.44); line-height: 1; }
+    .tile .t-lbl { font-size: calc(var(--tile) * 0.14); text-align: center; opacity: 0.9; line-height: 1.15; }
+
+    .tile-NORMAL      { background: #2d5a2d; }
+    .tile-SUPERPOWER  { background: #6a5800; border: 2px solid #f5e642; }
+    .tile-RIVER       { background: #1a407a; }
+    .tile-CHEETAH     { background: #7a4000; }
+    .tile-GIRAFFE     { background: #4a3a18; }
+    .tile-HELICOPTER  { background: #1a5a7a; border: 2px solid #5ad0ff; }
+    .tile-BEAR        { background: #3a2000; }
+    .tile-HONEY_POT   { background: #6a4a00; border: 2px solid #ffaa00; }
+    .tile-CHAMELEON   { background: #420070; }
+    .tile-SNAKE       { background: #5a1818; }
+    .tile-ALLIGATOR   { background: #2e1800; }
+    .tile-HIPPO       { background: #4a3020; }
+    .tile-RHINO       { background: #4a1a1a; border: 2px solid #ff5555; }
+    .tile-LION        { background: #6a4800; border: 2px solid #f5c842; }
+    .tile-GORILLA     { background: #2a1a0a; border: 2px solid #8b5e3c; }
+    .tile-TRAP        { background: #303030; border: 2px dashed #ff4444; }
+    .tile-FINISH      { background: #4a1060; border: 2px solid #f5e642; }
+
+    /* Destination highlight */
+    .tile.destination {
+      cursor: pointer;
+      animation: destPulse 0.7s ease-in-out infinite;
+      z-index: 2;
+    }
+
+    @keyframes destPulse {
+      0%, 100% { box-shadow: 0 0 0 2px #f5e642, 0 0 10px #f5e642aa; transform: scale(1); }
+      50%       { box-shadow: 0 0 0 4px #f5e642, 0 0 18px #f5e642cc; transform: scale(1.06); }
+    }
+
+    /* Player tokens */
+    .tokens {
+      position: absolute; bottom: 2px; right: 2px;
+      display: flex; flex-wrap: wrap; gap: 1px; max-width: 54px;
+    }
+    .token {
+      width: 24px; height: 24px; border-radius: 50%;
+      border: 2px solid #fff;
+      font-size: 0.6rem; font-weight: bold;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+    }
+
+    /* ─── Corner Sections ─── */
+    .corner-sp-section {
+      font-size: 0.73rem;
+      color: #f5e642;
+      background: rgba(245,230,66,0.08);
+      border: 1px solid rgba(245,230,66,0.2);
+      border-radius: 6px;
+      padding: 5px 8px;
+      min-height: 26px;
+    }
+    .corner-sp-empty { color: #555; font-style: italic; border-color: transparent; background: transparent; }
+    .corner-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 2px 0; }
+    .corner-turn {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 6px; min-height: 70px;
+    }
+
+
+    /* ─── Overlay ─── */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .overlay.show { display: flex; }
+    .overlay-box {
+      background: #1a3a1a; border: 2px solid #f5e642;
+      border-radius: 16px; padding: 32px 40px;
+      text-align: center; max-width: 360px;
+    }
+    .overlay-box h2 { color: #f5e642; font-size: 1.8rem; margin-bottom: 10px; }
+    .overlay-box p  { color: #ccc; margin-bottom: 20px; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+<!-- ─── Setup ─── -->
+<div id="setup-screen">
+  <h1>🌿 Jungle Journey</h1>
+  <h2>A Wild Safari Adventure</h2>
+  <div class="setup-box">
+    <label>Number of Players</label>
+    <select id="player-count" onchange="renderPlayerFields()">
+      <option value="2">2 Players</option>
+      <option value="3">3 Players</option>
+      <option value="4">4 Players</option>
+    </select>
+    <label>Player Names</label>
+    <div id="player-fields"></div>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">Start Safari →</button>
+</div>
+
+<!-- ─── Game ─── -->
+<div id="game-screen">
+  <div class="game-header">
+    <h1>🌿 Jungle Journey</h1>
+    <button class="btn btn-danger" onclick="resetToSetup()">New Game</button>
+  </div>
+
+  <div class="game-wrap">
+    <div class="corners-col" id="col-left">
+      <div class="player-corner" id="corner-0"></div>
+      <div class="player-corner" id="corner-2"></div>
+    </div>
+
+    <div id="board"></div>
+
+    <div class="corners-col" id="col-right">
+      <div class="player-corner" id="corner-1"></div>
+      <div class="player-corner" id="corner-3"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Win overlay -->
+<div class="overlay" id="win-overlay">
+  <div class="overlay-box">
+    <h2 id="win-title">🏆 Winner!</h2>
+    <p id="win-msg"></p>
+    <button class="btn btn-primary" onclick="resetToSetup()">Play Again</button>
+  </div>
+</div>
+
+<script src="src/logic/constants.js"></script>
+<script src="src/logic/rules.js"></script>
+<script src="src/logic/board.js"></script>
+<script src="src/logic/game.js"></script>
+<script>
+
+// ─── Constants ───
+const COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12'];
+
+const TILE_ICONS = {
+  NORMAL:'', SUPERPOWER:'⭐', RIVER:'🌊', CHEETAH:'🐆',
+  GIRAFFE:'🦒', HELICOPTER:'🚁', BEAR:'🐻', HONEY_POT:'🍯',
+  CHAMELEON:'🦎', SNAKE:'🐍', ALLIGATOR:'🐊',
+  HIPPO:'🦛', RHINO:'🦏', TRAP:'🪤', LION:'🦁', GORILLA:'🦍', FINISH:'🏁'
+};
+
+const SP_LABELS = {
+  BOAT:'🚣 Super Speedboat', BOW_ARROWS:'🏹 Bow & Arrows', TRAP:'🪤 Super Trap'
+};
+
+const SP_ICONS = { BOAT:'🚣', BOW_ARROWS:'🏹', TRAP:'🪤' };
+const SP_NAMES = { BOAT:'Speedboat', BOW_ARROWS:'Bow & Arrows', TRAP:'Super Trap' };
+
+const CORNER_TO_PLAYER = [0, 1, 2, 3];
+
+// ─── State ───
+let game = null;
+let uiPhase = 'ROLLING';
+let pendingRoll = null;
+let pendingDest = null;
+let turnEvents = {};   // playerId → {icon, msg} — cleared at start of each player's turn
+let activePlayerId = null;
+
+// ─── Setup ───
+function renderPlayerFields() {
+  const count = parseInt(document.getElementById('player-count').value);
+  const c = document.getElementById('player-fields');
+  c.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    c.innerHTML += `
+      <div class="player-row">
+        <div class="color-swatch" style="background:${COLORS[i]}"></div>
+        <input type="text" id="pname-${i}" value="Player ${i+1}" />
+      </div>`;
+  }
+}
+renderPlayerFields();
+
+function startGame() {
+  const count = parseInt(document.getElementById('player-count').value);
+  const defs = [];
+  for (let i = 0; i < count; i++) {
+    const name = document.getElementById(`pname-${i}`).value.trim() || `Player ${i+1}`;
+    defs.push({ name, color: COLORS[i] });
+  }
+  game = createGame(defs);
+  turnEvents = {};
+  activePlayerId = null;
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'flex';
+  renderBoard();
+  enterRolling();
+}
+
+function resetToSetup() {
+  document.getElementById('win-overlay').classList.remove('show');
+  document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
+  game = null;
+}
+
+// ─── Turn Flow ───
+
+function enterRolling() {
+  if (!game || game.winner) return;
+  uiPhase = 'ROLLING';
+  pendingRoll = null;
+  pendingDest = null;
+  clearBoardHighlight();
+
+  const player = currentPlayer(game);
+  activePlayerId = player.id;
+
+  // Auto-skip miss turns — no dice shown, just message then advance
+  if (player.missTurns > 0) {
+    const result = rollForTurn(game); // handles decrement + turn advance internally
+    const msg = result.message || `${result.player} misses this turn.`;
+    turnEvents[result.playerId] = { icon: '⏸', msg };
+    uiPhase = 'MISS';
+    renderAllCorners();
+    setTimeout(enterRolling, 1200);
+    return;
+  }
+
+  // Clear this player's turn event so stale events don't show
+  delete turnEvents[player.id];
+  renderAllCorners();
+}
+
+function handleDiceTap() {
+  if (uiPhase !== 'ROLLING') return;
+
+  const result = rollForTurn(game);
+  if (result.type !== 'ROLLED' && result.type !== 'OVERSHOOT') return;
+
+  activePlayerId = result.playerId;
+
+  if (result.type === 'OVERSHOOT') {
+    turnEvents[result.playerId] = { icon: '🎲', msg: `Too far! Need exactly ${result.needed} to finish.` };
+    uiPhase = 'EVENT';
+    renderAllCorners();
+    setTimeout(enterRolling, 1200);
+    return;
+  }
+
+  pendingRoll = result.roll;
+  pendingDest = result.destination;
+  uiPhase = 'MOVING';
+  highlightTile(result.destination);
+  renderAllCorners();
+}
+
+function handleTileTap(pos) {
+  if (uiPhase !== 'MOVING') return;
+  if (pos !== pendingDest) return;
+
+  clearBoardHighlight();
+  const result = applyMoveToTile(game, pos);
+
+  if (result.type === 'WIN') {
+    turnEvents[result.playerId] = { icon: '🏆', msg: `${result.player} wins the Jungle Journey!` };
+    renderBoard();
+    renderAllCorners();
+    setTimeout(() => showWin(result.player), 800);
+    return;
+  }
+
+  if (result.effect && result.effect.message) {
+    const icon = effectIcon(result.effect.effect);
+    turnEvents[result.playerId] = { icon, msg: result.effect.message };
+  }
+
+  renderBoard();
+
+  if (result.pendingAction) {
+    if (result.pendingAction.type === 'CHOOSE_SWAP_TARGET') {
+      uiPhase = 'SWAP';
+    } else if (result.pendingAction.type === 'PLACE_TRAPS') {
+      uiPhase = 'TRAP';
+    }
+    renderAllCorners();
+    return;
+  }
+
+  uiPhase = 'EVENT';
+  renderAllCorners();
+  setTimeout(enterRolling, 1200);
+}
+
+function handleSwapChoice(targetId) {
+  const result = resolveSwap(game, targetId);
+  const msg = result.message || '';
+  turnEvents[activePlayerId] = { icon: '🦎', msg };
+  renderBoard();
+  uiPhase = 'EVENT';
+  renderAllCorners();
+  setTimeout(enterRolling, 1200);
+}
+
+function handleTrapTileClick(pos) {
+  if (uiPhase !== 'TRAP') return;
+  const tile = game.board[pos];
+  if (tile.type !== TILE_TYPES.NORMAL) return;
+
+  const result = resolveTrapPlacement(game, pos);
+  if (result.error) return;
+
+  renderBoard();
+
+  if (!game.pendingAction) {
+    const msg = 'Placed 2 traps on the board.';
+    turnEvents[activePlayerId] = { icon: '🪤', msg };
+    uiPhase = 'EVENT';
+    renderAllCorners();
+    setTimeout(enterRolling, 1200);
+  } else {
+    renderAllCorners();
+  }
+}
+
+// ─── Board ───
+
+function tileToGrid(n) {
+  const idx = n - 1;
+  const row = Math.floor(idx / 10);
+  const col = (row % 2 === 0) ? idx % 10 : 9 - idx % 10;
+  return { gridRow: 10 - row, gridCol: col + 1 };
+}
+
+function renderBoard() {
+  const el = document.getElementById('board');
+  el.innerHTML = '';
+  for (let i = 1; i <= 100; i++) {
+    const tile = game.board[i];
+    const { gridRow, gridCol } = tileToGrid(i);
+    const typeClass = i === 100 ? 'FINISH' : tile.type;
+
+    let icon = TILE_ICONS[typeClass] || '';
+    let lbl = tile.label || (i === 100 ? 'FINISH' : '');
+    let extraStyle = '';
+
+    // Superpower: show specific SP icon and name
+    if (typeClass === 'SUPERPOWER' && tile.superpowerType) {
+      icon = SP_ICONS[tile.superpowerType] || '⭐';
+      lbl  = SP_NAMES[tile.superpowerType] || 'Superpower';
+    }
+
+    // Trap: show placer's color + initial
+    if (typeClass === 'TRAP' && tile.placedBy) {
+      const placer = game.players.find(p => p.id === tile.placedBy);
+      if (placer) {
+        extraStyle = `border-color:${placer.color}; border-width:2px; border-style:dashed;`;
+        lbl = placer.name[0];
+      }
+    }
+
+    const div = document.createElement('div');
+    div.className = `tile tile-${typeClass}`;
+    div.style.cssText = `grid-row:${gridRow}; grid-column:${gridCol}; ${extraStyle}`;
+    div.dataset.pos = i;
+    div.innerHTML = `
+      <span class="t-num">${i}</span>
+      <span class="t-icon">${icon}</span>
+      ${lbl ? `<span class="t-lbl">${lbl}</span>` : ''}
+      <div class="tokens" id="tok-${i}"></div>`;
+    div.addEventListener('click', () => {
+      if (uiPhase === 'MOVING') handleTileTap(i);
+      else if (uiPhase === 'TRAP') handleTrapTileClick(i);
+    });
+    el.appendChild(div);
+  }
+  renderTokens();
+}
+
+function renderTokens() {
+  document.querySelectorAll('.tokens').forEach(t => t.innerHTML = '');
+  game.players.forEach(p => {
+    if (p.position === 0) return;
+    const c = document.getElementById(`tok-${p.position}`);
+    if (!c) return;
+    const t = document.createElement('div');
+    t.className = 'token';
+    t.style.background = p.color;
+    t.textContent = p.name[0];
+    c.appendChild(t);
+  });
+}
+
+function highlightTile(pos) {
+  const el = document.querySelector(`[data-pos="${pos}"]`);
+  if (el) el.classList.add('destination');
+}
+
+function clearBoardHighlight() {
+  document.querySelectorAll('.tile.destination').forEach(t => t.classList.remove('destination'));
+}
+
+// ─── Corners ───
+
+function renderAllCorners() {
+  for (let ci = 0; ci < 4; ci++) {
+    const el = document.getElementById(`corner-${ci}`);
+    const pi = CORNER_TO_PLAYER[ci];
+    const player = game.players[pi];
+
+    if (!player) { el.className = 'player-corner hidden'; continue; }
+
+    const isActive = uiPhase === 'ROLLING' || uiPhase === 'MISS'
+      ? activePlayerId === player.id
+      : player.id === activePlayerId;
+
+    el.className = `player-corner${isActive ? ' active' : ''}`;
+    el.style.setProperty('--player-color', player.color);
+    el.style.borderColor = isActive ? player.color : 'rgba(255,255,255,0.1)';
+    el.innerHTML = buildCornerHTML(player, isActive);
+  }
+}
+
+function buildCornerHTML(player, isActive) {
+  const posLabel = player.position === 0 ? 'Start' : `Tile ${player.position}`;
+  const missNote = player.missTurns > 0
+    ? `<div class="corner-miss">⏸ Misses ${player.missTurns} turn(s)</div>` : '';
+
+  // Superpower section — always present, never replaced by events
+  let spHtml = '';
+  if (player.superpower) {
+    const lbl = SP_LABELS[player.superpower] || player.superpower;
+    const extra = player.superpower === SUPERPOWER_TYPES.BOW_ARROWS
+      ? ` <span style="opacity:0.7">(${player.arrowCharges} left)</span>` : '';
+    spHtml = `<div class="corner-sp-section"><div style="font-size:0.6rem;opacity:0.55;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Superpower</div>${lbl}${extra}</div>`;
+  } else {
+    spHtml = `<div class="corner-sp-section corner-sp-empty">No superpower yet</div>`;
+  }
+
+  // Turn section — dice, move instruction, or event
+  let turnHtml = '';
+  if (isActive) {
+    if (uiPhase === 'ROLLING') {
+      turnHtml = `
+        <button class="dice-btn" onclick="handleDiceTap()">🎲</button>
+        <div class="roll-label">Tap to roll</div>`;
+    } else if (uiPhase === 'MOVING') {
+      turnHtml = `
+        <div class="roll-result">${pendingRoll}</div>
+        <div class="roll-label">→ Tap tile <strong>${pendingDest}</strong></div>`;
+    } else if (uiPhase === 'EVENT' || uiPhase === 'MISS') {
+      const ev = turnEvents[player.id] || { icon: '✅', msg: 'Safe passage' };
+      turnHtml = `
+        <div class="event-big">${ev.icon}</div>
+        <div class="event-msg">${ev.msg}</div>`;
+    } else if (uiPhase === 'SWAP') {
+      const opts = game.players
+        .filter(p => p.id !== player.id)
+        .map(p => `<button class="action-btn swap-btn" onclick="handleSwapChoice('${p.id}')">⇄ ${p.name} (Tile ${p.position})</button>`)
+        .join('');
+      turnHtml = `
+        <div class="event-big">🦎</div>
+        <div class="roll-label">Chameleon! Tap a player to swap:</div>
+        <div class="action-btns">${opts}</div>`;
+    } else if (uiPhase === 'TRAP') {
+      const rem = game.pendingAction ? game.pendingAction.remaining : 0;
+      turnHtml = `
+        <div class="event-big">🪤</div>
+        <div class="roll-label">Tap ${rem} tile(s) on board to place</div>`;
+    }
+  } else {
+    // Inactive: show this turn's event if it happened
+    const ev = turnEvents[player.id];
+    if (ev) {
+      turnHtml = `
+        <div class="event-big" style="font-size:1.2rem;opacity:0.8">${ev.icon}</div>
+        <div class="event-msg" style="opacity:0.6;font-size:0.7rem">${ev.msg}</div>`;
+    }
+  }
+
+  return `
+    <div class="corner-name">${player.name}</div>
+    <div class="corner-meta">${posLabel}</div>
+    ${missNote}
+    ${spHtml}
+    <div class="corner-divider"></div>
+    <div class="corner-turn">${turnHtml}</div>`;
+}
+
+// ─── Helpers ───
+
+
+function effectIcon(effect) {
+  const map = {
+    MOVE_TO:'➡️', MISS_TURN:'⏸', SWAP_WITH:'🦎',
+    KILL_PREDATOR:'🏹', TRAP_PLACED:'🪤', TRAPPED:'🪤', EXTRA_TURN:'🦁', NONE:'✅'
+  };
+  return map[effect] || '✅';
+}
+
+function showWin(name) {
+  document.getElementById('win-title').textContent = `🏆 ${name} Wins!`;
+  document.getElementById('win-msg').textContent = `${name} reached the end of the Jungle Journey first!`;
+  document.getElementById('win-overlay').classList.add('show');
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+const TILE_TYPES = {
+  NORMAL: 'NORMAL',
+  SUPERPOWER: 'SUPERPOWER',
+  RIVER: 'RIVER',
+  CHEETAH: 'CHEETAH',
+  GIRAFFE: 'GIRAFFE',
+  HELICOPTER: 'HELICOPTER',
+  BEAR: 'BEAR',
+  HONEY_POT: 'HONEY_POT',
+  CHAMELEON: 'CHAMELEON',
+  SNAKE: 'SNAKE',
+  ALLIGATOR: 'ALLIGATOR',
+  HIPPO: 'HIPPO',
+  RHINO: 'RHINO',
+  TRAP: 'TRAP',
+  LION: 'LION',
+  GORILLA: 'GORILLA'
+};
+
+const SUPERPOWER_TYPES = {
+  BOAT: 'BOAT',           // cross rivers without missing a turn
+  BOW_ARROWS: 'BOW_ARROWS', // 2 charges: kill a predator on landing
+  TRAP: 'TRAP'            // place 2 traps; others who land miss a turn
+};
+
+// Maps superpower tile index (1-6) to superpower type
+const SUPERPOWER_TILE_MAP = {
+  1: SUPERPOWER_TYPES.BOAT,
+  2: SUPERPOWER_TYPES.BOW_ARROWS,
+  3: SUPERPOWER_TYPES.TRAP,
+  4: SUPERPOWER_TYPES.BOAT,
+  5: SUPERPOWER_TYPES.BOW_ARROWS,
+  6: SUPERPOWER_TYPES.TRAP
+};
+
+const EFFECTS = {
+  MISS_TURN: 'MISS_TURN',
+  MOVE_TO: 'MOVE_TO',
+  SWAP_WITH: 'SWAP_WITH',
+  EXTRA_TURN: 'EXTRA_TURN',
+  KILL_PREDATOR: 'KILL_PREDATOR',
+  TRAP_PLACED: 'TRAP_PLACED',
+  TRAPPED: 'TRAPPED',
+  NONE: 'NONE'
+};
