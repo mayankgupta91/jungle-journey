@@ -1,4 +1,4 @@
-const CACHE = 'jungle-journey-v1';
+const CACHE = 'jungle-journey-v2';
 const ASSETS = [
   '/jungle-journey/game.html',
   '/jungle-journey/src/logic/constants.js',
