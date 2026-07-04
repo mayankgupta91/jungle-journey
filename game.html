@@ -337,7 +337,9 @@
     @keyframes spin90 { from { transform: rotate(0deg); } to { transform: rotate(90deg); } }
     #rotate-overlay p { color: #a8e88a; font-size: 1.1rem; line-height: 1.5; }
 
-    /* orientation handled via JS */
+    @media (orientation: portrait) {
+      #rotate-overlay { display: flex !important; }
+    }
 
     /* ─── Overlay ─── */
     .overlay {
