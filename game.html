@@ -337,9 +337,7 @@
     @keyframes spin90 { from { transform: rotate(0deg); } to { transform: rotate(90deg); } }
     #rotate-overlay p { color: #a8e88a; font-size: 1.1rem; line-height: 1.5; }
 
-    @media (orientation: portrait) and (max-width: 768px) {
-      #rotate-overlay { display: flex; }
-    }
+    /* orientation handled via JS */
 
     /* ─── Overlay ─── */
     .overlay {
@@ -790,6 +788,20 @@ function showWin(name) {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/jungle-journey/sw.js');
   }
+</script>
+<script>
+  (function() {
+    var overlay = document.getElementById('rotate-overlay');
+    function checkOrientation() {
+      if (!overlay) return;
+      overlay.style.display = (window.innerHeight > window.innerWidth) ? 'flex' : 'none';
+    }
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', function() {
+      setTimeout(checkOrientation, 150);
+    });
+    checkOrientation();
+  })();
 </script>
 </body>
 </html>
