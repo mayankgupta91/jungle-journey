@@ -19,6 +19,7 @@
       background: #1a2e1a;
       color: #f0f0f0;
       min-height: 100vh;
+      overflow-y: auto;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -69,39 +70,47 @@
 
     /* ─── Game Screen ─── */
     #game-screen {
-      --tile: min(calc((100vw - 2 * clamp(100px, 12vw, 150px) - 36px) / 10), calc((100vh - 80px) / 10));
       display: none;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      padding: 8px;
+      gap: 6px;
+      padding: 6px 8px;
       width: 100%;
+      height: 100vh;
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     .game-header {
-      display: flex; align-items: center; gap: 16px;
+      display: flex; align-items: center; gap: 12px;
+      flex-shrink: 0;
     }
-    .game-header h1 { font-size: 1.5rem; color: #f5e642; }
+    .game-header h1 { font-size: 1.1rem; color: #f5e642; }
 
     /* ─── Main Layout ─── */
     .game-wrap {
       display: flex;
       gap: 10px;
-      align-items: flex-start;
+      align-items: stretch;
+      flex: 1;
+      min-height: 0;
     }
 
     .corners-col {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      width: clamp(100px, 12vw, 150px);
+      width: 150px;
       flex-shrink: 0;
+      overflow: hidden;
     }
 
     /* ─── Player Corner ─── */
     .player-corner {
-      width: clamp(100px, 12vw, 150px);
-      min-height: 160px;
+      width: 150px;
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
       border-radius: 12px;
       border: 2px solid rgba(255,255,255,0.1);
       padding: 12px;
@@ -153,11 +162,13 @@
 
     /* Dice */
     .dice-btn {
-      width: 58px; height: 58px;
+      width: clamp(36px, 8vh, 58px);
+      height: clamp(36px, 8vh, 58px);
       background: #fff; border-radius: 12px;
       border: none; cursor: pointer;
-      font-size: 2rem;
+      font-size: clamp(1.2rem, 4vh, 2rem);
       display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
       transition: transform 0.1s;
       color: #1a2e1a;
       box-shadow: 0 3px 8px rgba(0,0,0,0.4);
@@ -224,10 +235,12 @@
     /* ─── Board ─── */
     #board {
       display: grid;
-      grid-template-columns: repeat(10, var(--tile));
-      grid-template-rows: repeat(10, var(--tile));
+      grid-template-columns: repeat(10, 1fr);
+      grid-template-rows: repeat(10, 1fr);
       gap: 2px;
       flex-shrink: 0;
+      height: 100%;
+      aspect-ratio: 1 / 1;
     }
 
     .tile {
@@ -244,10 +257,10 @@
 
     .tile .t-num {
       position: absolute; top: 2px; left: 3px;
-      font-size: calc(var(--tile) * 0.16); opacity: 0.7;
+      font-size: 1.4vh; opacity: 0.7;
     }
-    .tile .t-icon { font-size: calc(var(--tile) * 0.44); line-height: 1; }
-    .tile .t-lbl { font-size: calc(var(--tile) * 0.14); text-align: center; opacity: 0.9; line-height: 1.15; }
+    .tile .t-icon { font-size: 4.2vh; line-height: 1; }
+    .tile .t-lbl { font-size: 1.15vh; text-align: center; opacity: 0.9; line-height: 1.15; }
 
     .tile-NORMAL      { background: #2d5a2d; }
     .tile-SUPERPOWER  { background: #6a5800; border: 2px solid #f5e642; }
@@ -311,6 +324,23 @@
     }
 
 
+    /* ─── Rotate overlay (portrait phones only) ─── */
+    #rotate-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 999;
+      background: #1a2e1a;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 20px; text-align: center; padding: 40px;
+    }
+    #rotate-overlay .rotate-icon { font-size: 4rem; animation: spin90 1.5s ease-in-out infinite alternate; }
+    @keyframes spin90 { from { transform: rotate(0deg); } to { transform: rotate(90deg); } }
+    #rotate-overlay p { color: #a8e88a; font-size: 1.1rem; line-height: 1.5; }
+
+    @media (orientation: portrait) and (max-width: 768px) {
+      #rotate-overlay { display: flex; }
+    }
+
     /* ─── Overlay ─── */
     .overlay {
       display: none; position: fixed; inset: 0;
@@ -328,6 +358,12 @@
   </style>
 </head>
 <body>
+
+<!-- ─── Rotate prompt ─── -->
+<div id="rotate-overlay">
+  <div class="rotate-icon">📱</div>
+  <p>Jungle Journey plays in landscape.<br>Rotate your device to continue.</p>
+</div>
 
 <!-- ─── Setup ─── -->
 <div id="setup-screen">
